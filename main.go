@@ -41,12 +41,14 @@ func main() {
 	flag.BoolVar(&flagListStacks, "l", false, "List stacks")
 	flag.StringVar(&flagRegion, "r", "us-west-1", "Region")
 	flag.StringVar(&flagCapabilities, "a", "", "<CAPABILITIES> list of capabilities i.e. CAPABILITY_IAM,CAPABILITY_NAMED_IAM")
-	flag.BoolVar(&flagVerbose, "v", true, "verbose messaging")
+	flag.BoolVar(&flagVerbose, "v", false, "verbose messaging")
 	flag.Parse()
 
 	if flagVerbose {
 		log.SetLevel(log.DEBUG)
 		log.Debug("verbose messaging enabled")
+	} else {
+		log.SetLevel(log.INFO)
 	}
 
 	if flagListStacks {
@@ -56,7 +58,7 @@ func main() {
 	}
 
 	if flagName.set && flagURI.set {
-		params := flag.Args()
+		params := cfn.GetParameters(flag.Args())
 		log.Debug("Parameters passed in: %v", params)
 		if exists, stackDetails := cfn.StackExists(flagRegion, flagName.value); exists {
 			// if Update stack is true
@@ -68,14 +70,22 @@ func main() {
 				} else {
 					// Create change set
 					log.Info("Creating change set")
-					cfn.CreateChangeSet(flagRegion, flagName.value, flagURI.value, params)
+					cfn.CreateChangeSet(flagRegion, stackDetails, flagName.value, flagURI.value, params)
 				}
 			} else {
-				log.Info("Update flag not set, exiting.")
+				log.Info("Update flag not set (-u), exiting.")
 				os.Exit(-1)
 			}
 		} else {
 			// cfn.CreateStack(flagRegion, flagName.value, flagURI.value, params)
 		}
+	} else {
+		if !flagName.set {
+			log.Info("You must set the stack name (-n)")
+		}
+		if !flagURI.set {
+			log.Info("You must set the stack location (-f)")
+		}
+		os.Exit(1)
 	}
 }

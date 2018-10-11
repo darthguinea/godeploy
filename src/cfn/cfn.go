@@ -16,19 +16,26 @@ func getSession(r string) *session.Session {
 	})
 }
 
-func CreateChangeSet(r string, name string, uri string, params []string) {
-	// svc := cloudformation.New(getSession(r))
+func CreateChangeSet(r string,
+	currentStack *cloudformation.Stack,
+	name string, uri string, params []*cloudformation.Parameter) {
+	log.Debug("%v", currentStack)
+	getUpdatedParameters(currentStack.Parameters, params)
 
-	cfnParams := getParameters(params)
+	// Initialise the variable:
+	svc := cloudformation.New(getSession(r))
 	template := cloudformation.CreateChangeSetInput{}
+	count := getChangeSetCount(r, name)
 	if pass, path := parseURI(uri); pass {
-		template = createChangeSetFromFile(name, path, cfnParams)
+		template = createChangeSetFromFile(name, path, count, currentStack.Parameters)
 	} else {
-		template = createChangeSetFromURI(name, path, cfnParams)
+		template = createChangeSetFromURI(name, path, count, currentStack.Parameters)
 	}
-	log.Info("%v", template)
-
-	// svc.CreateChangeSet()
+	changeSet, err := svc.CreateChangeSet(&template)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Debug("%v", changeSet)
 }
 
 // DescribeStacks describes the cloudformation stacks in the region
@@ -74,18 +81,17 @@ func StackExists(r string, name string) (bool, *cloudformation.Stack) {
 }
 
 // CreateStack API call to create aws cloudformation stack
-func CreateStack(r string, name string, uri string, params []string) {
+func CreateStack(r string, name string, uri string, params []*cloudformation.Parameter) {
 	svc := cloudformation.New(getSession(r))
 
-	cfnParams := getParameters(params)
 	log.Debug("Using Parameters:")
-	log.Debug("%v", cfnParams)
+	log.Debug("%v", params)
 
 	template := cloudformation.CreateStackInput{}
 	if pass, path := parseURI(uri); pass {
-		template = createStackFromFile(name, path, cfnParams)
+		template = createStackFromFile(name, path, params)
 	} else {
-		template = createStackFromURI(name, path, cfnParams)
+		template = createStackFromURI(name, path, params)
 	}
 
 	stack, err := svc.CreateStack(&template)
@@ -107,4 +113,16 @@ func parseURI(uri string) (bool, string) {
 		os.Exit(1)
 	}
 	return true, uri
+}
+
+func GetParameters(p []string) []*cloudformation.Parameter {
+	var parameters []*cloudformation.Parameter
+	for _, val := range p {
+		strKeyPair := strings.Split(val, "=")
+		parameters = append(parameters, &cloudformation.Parameter{
+			ParameterKey:   &strKeyPair[0],
+			ParameterValue: &strKeyPair[1],
+		})
+	}
+	return parameters
 }
