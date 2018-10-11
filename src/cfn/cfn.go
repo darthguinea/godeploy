@@ -60,11 +60,30 @@ func DescribeStacks(r string) {
 	}
 
 	for _, stack := range stackSummaries.StackSummaries {
-		log.Print("%30v %50v %50v", *stack.StackName,
+		log.Print("%-52v %-40v %-20v", *stack.StackName,
 			stack.CreationTime.Format("Mon Jan 2 15:04:05 MST 2006"),
 			*stack.StackStatus,
 		)
+		// List change sets:
+		changeSets := DescribeChangeSets(r, *stack.StackName)
+		for _, change := range changeSets.Summaries {
+			log.Print("\tchange set -> %-30v %-40v %-20v", *change.ChangeSetName,
+				change.CreationTime.Format("Mon Jan 2 15:04:05 MST 2006"),
+				*change.ExecutionStatus,
+			)
+		}
 	}
+}
+
+func DescribeChangeSets(r string, name string) *cloudformation.ListChangeSetsOutput {
+	svc := cloudformation.New(getSession(r))
+	sets, err := svc.ListChangeSets(&cloudformation.ListChangeSetsInput{
+		StackName: &name,
+	})
+	if err != nil {
+		log.Error("%v", err)
+	}
+	return sets
 }
 
 // StackExists - Find stack with name, return stack information
