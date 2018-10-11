@@ -40,7 +40,7 @@ func main() {
 	flag.Var(&flagURI, "f", "<location> Cloudformation location, i.e. file://./cfn.yaml or s3://location")
 	flag.BoolVar(&flagListStacks, "l", false, "List stacks")
 	flag.StringVar(&flagRegion, "r", "us-west-1", "Region")
-	flag.StringVar(&flagCapabilities, "a", "", "<CAPABILITIES> list of capabilities i.e. CAPABILITY_IAM,CAPABILITY_NAMED_IAM")
+	flag.StringVar(&flagCapabilities, "c", "", "<CAPABILITIES> list of capabilities i.e. CAPABILITY_IAM,CAPABILITY_NAMED_IAM")
 	flag.BoolVar(&flagVerbose, "v", false, "verbose messaging")
 	flag.Parse()
 
@@ -70,7 +70,8 @@ func main() {
 				} else {
 					// Create change set
 					log.Info("Creating change set")
-					cfn.CreateChangeSet(flagRegion, stackDetails, flagName.value, flagURI.value, params)
+					capabilities := cfn.GetCapabilities(flagCapabilities)
+					cfn.CreateChangeSet(flagRegion, stackDetails, flagName.value, flagURI.value, params, capabilities)
 				}
 			} else {
 				log.Info("Update flag not set (-u), exiting.")
