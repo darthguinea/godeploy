@@ -67,12 +67,13 @@ func createChangeSetFromFile(name string, uri string, count int,
 }
 
 func createChangeSetFromURI(name string, uri string, count int,
-	params []*cloudformation.Parameter) cloudformation.CreateChangeSetInput {
+	params []*cloudformation.Parameter, capabilities []*string) cloudformation.CreateChangeSetInput {
 	changeSetName := fmt.Sprintf("%s-%d", name, count)
 	return cloudformation.CreateChangeSetInput{
 		StackName:     &name,
 		ChangeSetName: &changeSetName,
 		TemplateURL:   &uri,
 		Parameters:    params,
+		Capabilities:  capabilities,
 	}
 }

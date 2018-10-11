@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 )
 
-func createStackFromFile(name string, uri string, params []*cloudformation.Parameter) cloudformation.CreateStackInput {
+func createStackFromFile(name string, uri string, params []*cloudformation.Parameter, capabilities []*string) cloudformation.CreateStackInput {
 	file, err := os.Open(uri)
 	if err != nil {
 		log.Error("Could not open file %v", uri)
@@ -21,13 +21,15 @@ func createStackFromFile(name string, uri string, params []*cloudformation.Param
 		StackName:    &name,
 		TemplateBody: &templateBody,
 		Parameters:   params,
+		Capabilities: capabilities,
 	}
 }
 
-func createStackFromURI(name string, uri string, params []*cloudformation.Parameter) cloudformation.CreateStackInput {
+func createStackFromURI(name string, uri string, params []*cloudformation.Parameter, capabilities []*string) cloudformation.CreateStackInput {
 	return cloudformation.CreateStackInput{
-		StackName:   &name,
-		TemplateURL: &uri,
-		Parameters:  params,
+		StackName:    &name,
+		TemplateURL:  &uri,
+		Parameters:   params,
+		Capabilities: capabilities,
 	}
 }
