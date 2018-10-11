@@ -46,7 +46,7 @@ func getChangeSetCount(r string, name string) int {
 }
 
 func createChangeSetFromFile(name string, uri string, count int,
-	params []*cloudformation.Parameter) cloudformation.CreateChangeSetInput {
+	params []*cloudformation.Parameter, capabilities []*string) cloudformation.CreateChangeSetInput {
 	file, err := os.Open(uri)
 	if err != nil {
 		log.Error("Could not open file %v", uri)
@@ -62,6 +62,7 @@ func createChangeSetFromFile(name string, uri string, count int,
 		ChangeSetName: &changeSetName,
 		TemplateBody:  &templateBody,
 		Parameters:    params,
+		Capabilities:  capabilities,
 	}
 }
 

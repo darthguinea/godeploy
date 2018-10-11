@@ -18,7 +18,8 @@ func getSession(r string) *session.Session {
 
 func CreateChangeSet(r string,
 	currentStack *cloudformation.Stack,
-	name string, uri string, params []*cloudformation.Parameter) {
+	name string, uri string, params []*cloudformation.Parameter,
+	capabilities []*string) {
 	log.Debug("%v", currentStack)
 	getUpdatedParameters(currentStack.Parameters, params)
 
@@ -27,7 +28,8 @@ func CreateChangeSet(r string,
 	template := cloudformation.CreateChangeSetInput{}
 	count := getChangeSetCount(r, name)
 	if pass, path := parseURI(uri); pass {
-		template = createChangeSetFromFile(name, path, count, currentStack.Parameters)
+		template = createChangeSetFromFile(name, path, count,
+			currentStack.Parameters, capabilities)
 	} else {
 		template = createChangeSetFromURI(name, path, count, currentStack.Parameters)
 	}
@@ -125,4 +127,12 @@ func GetParameters(p []string) []*cloudformation.Parameter {
 		})
 	}
 	return parameters
+}
+
+func GetCapabilities(cap string) []*string {
+	x := []*string{}
+	for _, c := range strings.Split(cap, ",") {
+		x = append(x, &c)
+	}
+	return x
 }
