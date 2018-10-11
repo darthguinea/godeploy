@@ -78,7 +78,8 @@ func main() {
 				os.Exit(-1)
 			}
 		} else {
-			// cfn.CreateStack(flagRegion, flagName.value, flagURI.value, params)
+			capabilities := cfn.GetCapabilities(flagCapabilities)
+			cfn.CreateStack(flagRegion, flagName.value, flagURI.value, params, capabilities)
 		}
 	} else {
 		if !flagName.set {
