@@ -6,6 +6,8 @@ Deploys or updates cloudformation stacks, this script will not blindly update CF
 
 You can create multiple change sets, it will keep incrementing the counter at the end of the change set name.
 
+_*Note*_: One cool feature is that this will not update any paramters that you DO NOT pass in, i.e. if you are updating a network stack, don't pass in the Cidr block and it will not be updated.
+
 ## Examples:
 List cloudformation stacks and their respective change sets:
 ```

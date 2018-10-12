@@ -10,12 +10,14 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 )
 
+// Creates an AWS Session if you pass in the region
 func getSession(r string) *session.Session {
 	return session.New(&aws.Config{
 		Region: aws.String(r),
 	})
 }
 
+// CreateChangeSet - This will create a change set for a given stack
 func CreateChangeSet(r string,
 	currentStack *cloudformation.Stack,
 	name string, uri string, params []*cloudformation.Parameter,
@@ -26,7 +28,7 @@ func CreateChangeSet(r string,
 	// Initialise the variable:
 	svc := cloudformation.New(getSession(r))
 	template := cloudformation.CreateChangeSetInput{}
-	count := getChangeSetCount(r, name)
+	count := len(DescribeChangeSets(r, name).Summaries) + 1
 	if pass, path := parseURI(uri); pass {
 		template = createChangeSetFromFile(name, path, count,
 			currentStack.Parameters, capabilities)
@@ -75,6 +77,7 @@ func DescribeStacks(r string) {
 	}
 }
 
+// Describes the ChangeSets for a given Stack in a region
 func DescribeChangeSets(r string, name string) *cloudformation.ListChangeSetsOutput {
 	svc := cloudformation.New(getSession(r))
 	sets, err := svc.ListChangeSets(&cloudformation.ListChangeSetsInput{
@@ -137,6 +140,7 @@ func parseURI(uri string) (bool, string) {
 	return true, uri
 }
 
+// GetParameters - Convers an array of strings to array of parameters
 func GetParameters(p []string) []*cloudformation.Parameter {
 	var parameters []*cloudformation.Parameter
 	for _, val := range p {
@@ -149,6 +153,7 @@ func GetParameters(p []string) []*cloudformation.Parameter {
 	return parameters
 }
 
+// GetCapabilities - Will return an array of string pointers for capabilities
 func GetCapabilities(cap string) []*string {
 	x := []*string{}
 	if strings.Compare(cap, "") == 0 {

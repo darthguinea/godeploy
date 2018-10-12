@@ -34,17 +34,6 @@ outer:
 	return
 }
 
-func getChangeSetCount(r string, name string) int {
-	svc := cloudformation.New(getSession(r))
-	sets, err := svc.ListChangeSets(&cloudformation.ListChangeSetsInput{
-		StackName: &name,
-	})
-	if err != nil {
-		log.Error("%v", err)
-	}
-	return len(sets.Summaries) + 1
-}
-
 func createChangeSetFromFile(name string, uri string, count int,
 	params []*cloudformation.Parameter, capabilities []*string) cloudformation.CreateChangeSetInput {
 	file, err := os.Open(uri)
