@@ -151,6 +151,9 @@ func GetParameters(p []string) []*cloudformation.Parameter {
 
 func GetCapabilities(cap string) []*string {
 	x := []*string{}
+	if strings.Compare(cap, "") == 0 {
+		return nil
+	}
 	for _, c := range strings.Split(cap, ",") {
 		x = append(x, &c)
 	}
