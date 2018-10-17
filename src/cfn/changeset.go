@@ -2,10 +2,10 @@ package cfn
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
 	"../log"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 )
@@ -32,27 +32,6 @@ outer:
 	}
 	log.Debug("Parameters: %v", currentParams)
 	return
-}
-
-func createChangeSetFromFile(name string, uri string, count int,
-	params []*cloudformation.Parameter, capabilities []*string) cloudformation.CreateChangeSetInput {
-	file, err := os.Open(uri)
-	if err != nil {
-		log.Error("Could not open file %v", uri)
-	}
-
-	data := make([]byte, 1048576)
-	x, _ := file.Read(data)
-	templateBody := string(data[:x])
-
-	changeSetName := fmt.Sprintf("%s-%d", name, count)
-	return cloudformation.CreateChangeSetInput{
-		StackName:     &name,
-		ChangeSetName: &changeSetName,
-		TemplateBody:  &templateBody,
-		Parameters:    params,
-		Capabilities:  capabilities,
-	}
 }
 
 func createChangeSetFromURI(name string, uri string, count int,

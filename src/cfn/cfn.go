@@ -1,10 +1,13 @@
 package cfn
 
 import (
+	"fmt"
 	"os"
 	"strings"
 
 	"../log"
+	"../utils"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
@@ -30,15 +33,7 @@ func UpdateStack(r string, uri string, name string,
 	}
 
 	if pass, path := parseURI(uri); pass {
-		file, err := os.Open(path)
-		if err != nil {
-			log.Error("Error opening file %v", path)
-		}
-
-		data := make([]byte, 1048576)
-		x, _ := file.Read(data)
-		templateBody := string(data[:x])
-
+		templateBody := utils.LoadTemplate(path)
 		template.TemplateBody = &templateBody
 	} else {
 		template.TemplateURL = &path
@@ -52,20 +47,26 @@ func UpdateStack(r string, uri string, name string,
 }
 
 // CreateChangeSet - This will create a change set for a given stack
-func CreateChangeSet(r string,
-	currentStack *cloudformation.Stack,
-	name string, uri string, params []*cloudformation.Parameter,
-	capabilities []*string) {
+func CreateChangeSet(r string, currentStack *cloudformation.Stack, name string, uri string, params []*cloudformation.Parameter, capabilities []*string) {
 	log.Debug("%v", currentStack)
 	getUpdatedParameters(currentStack.Parameters, params)
 
 	// Initialise the variable:
 	svc := cloudformation.New(getSession(r))
-	template := cloudformation.CreateChangeSetInput{}
+
 	count := len(DescribeChangeSets(r, name).Summaries) + 1
+	changeSetName := fmt.Sprintf("%s-%d", name, count)
+
+	template := cloudformation.CreateChangeSetInput{
+		StackName:     &name,
+		ChangeSetName: &changeSetName,
+		Parameters:    params,
+		Capabilities:  capabilities,
+	}
+
 	if pass, path := parseURI(uri); pass {
-		template = createChangeSetFromFile(name, path, count,
-			currentStack.Parameters, capabilities)
+		templateBody := utils.LoadTemplate(path)
+		template.TemplateBody = &templateBody
 	} else {
 		template = createChangeSetFromURI(name, path, count,
 			currentStack.Parameters, capabilities)
