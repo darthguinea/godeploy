@@ -17,6 +17,40 @@ func getSession(r string) *session.Session {
 	})
 }
 
+// UpdateStack - This will update the cfn stack
+func UpdateStack(r string, uri string, name string,
+	params []*cloudformation.Parameter,
+	capabilities []*string) {
+	svc := cloudformation.New(getSession(r))
+
+	template := cloudformation.UpdateStackInput{
+		StackName:    &name,
+		Parameters:   params,
+		Capabilities: capabilities,
+	}
+
+	if pass, path := parseURI(uri); pass {
+		file, err := os.Open(path)
+		if err != nil {
+			log.Error("Error opening file %v", path)
+		}
+
+		data := make([]byte, 1048576)
+		x, _ := file.Read(data)
+		templateBody := string(data[:x])
+
+		template.TemplateBody = &templateBody
+	} else {
+		template.TemplateURL = &path
+	}
+
+	stack, err := svc.UpdateStack(&template)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Print("%v", stack)
+}
+
 // CreateChangeSet - This will create a change set for a given stack
 func CreateChangeSet(r string,
 	currentStack *cloudformation.Stack,

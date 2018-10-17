@@ -36,7 +36,7 @@ func main() {
 	)
 	flag.Var(&flagName, "n", "<stack_name> Stack name to use")
 	flag.BoolVar(&flagUpdate, "u", false, "Allow stack to be updated if stack exists")
-	flag.BoolVar(&flagNoChangeSet, "x", false, "A change set is created by default, use this flag if you want to update without creating a changeset")
+	flag.BoolVar(&flagNoChangeSet, "x", false, "When using (-u) a change set is created by default, use this flag if you want to update without creating a changeset")
 	flag.Var(&flagURI, "f", "<location> Cloudformation location, i.e. file://./cfn.yaml or s3://location")
 	flag.BoolVar(&flagListStacks, "l", false, "List stacks")
 	flag.StringVar(&flagRegion, "r", "us-west-1", "Region")
@@ -64,17 +64,19 @@ func main() {
 			// if Update stack is true
 			log.Info("Stack %v exists in state %v", *stackDetails.StackName, *stackDetails.StackStatus)
 			if flagUpdate {
+				// Create change set
 				if flagNoChangeSet {
-					// if No Change set is set (just update without changeset)
-					log.Warn("No Change set flag set, updating stack...")
-				} else {
-					// Create change set
-					log.Info("Creating change set")
+					log.Warn("-x flag has been set, updating stack")
+					log.Info("Updating stack %v", *stackDetails.StackName)
 					capabilities := cfn.GetCapabilities(flagCapabilities)
-					cfn.CreateChangeSet(flagRegion, stackDetails, flagName.value, flagURI.value, params, capabilities)
+					cfn.UpdateStack(flagRegion, flagURI.value, flagName.value, params, capabilities)
+					os.Exit(0)
 				}
+				log.Info("Creating change set")
+				capabilities := cfn.GetCapabilities(flagCapabilities)
+				cfn.CreateChangeSet(flagRegion, stackDetails, flagName.value, flagURI.value, params, capabilities)
 			} else {
-				log.Info("Update flag not set (-u), exiting.")
+				log.Info("Update flag not set (-u), exiting. If you are trying to update without a change set add the -x flag.")
 				os.Exit(-1)
 			}
 		} else {
