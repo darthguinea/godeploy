@@ -25,6 +25,7 @@ func UpdateStack(r string, currentStack *cloudformation.Stack,
 	uri string, name string, params []*cloudformation.Parameter,
 	capabilities []*string) {
 	svc := cloudformation.New(getSession(r))
+	log.Info("UpdateStack")
 
 	getUpdatedParameters(currentStack.Parameters, params)
 	template := cloudformation.UpdateStackInput{
@@ -69,8 +70,7 @@ func CreateChangeSet(r string, currentStack *cloudformation.Stack, name string, 
 		templateBody := utils.LoadTemplate(path)
 		template.TemplateBody = &templateBody
 	} else {
-		template = createChangeSetFromURI(name, path, count,
-			currentStack.Parameters, capabilities)
+		template.TemplateURL = &path
 	}
 	changeSet, err := svc.CreateChangeSet(&template)
 	if err != nil {
@@ -144,15 +144,21 @@ func StackExists(r string, name string) (bool, *cloudformation.Stack) {
 // CreateStack API call to create aws cloudformation stack
 func CreateStack(r string, name string, uri string, params []*cloudformation.Parameter, capabilities []*string) {
 	svc := cloudformation.New(getSession(r))
+	log.Info("CreateStack")
 
 	log.Debug("Using Parameters:")
 	log.Debug("%v", params)
 
-	template := cloudformation.CreateStackInput{}
+	template := cloudformation.CreateStackInput{
+		StackName:    &name,
+		Parameters:   params,
+		Capabilities: capabilities,
+	}
 	if pass, path := parseURI(uri); pass {
-		template = createStackFromFile(name, path, params, capabilities)
+		templateBody := utils.LoadTemplate(path)
+		template.TemplateBody = &templateBody
 	} else {
-		template = createStackFromURI(name, path, params, capabilities)
+		template.TemplateURL = &path
 	}
 
 	stack, err := svc.CreateStack(&template)

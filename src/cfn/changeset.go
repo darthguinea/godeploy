@@ -1,7 +1,6 @@
 package cfn
 
 import (
-	"fmt"
 	"strings"
 
 	"../log"
@@ -32,16 +31,4 @@ outer:
 	}
 	log.Debug("Parameters: %v", currentParams)
 	return
-}
-
-func createChangeSetFromURI(name string, uri string, count int,
-	params []*cloudformation.Parameter, capabilities []*string) cloudformation.CreateChangeSetInput {
-	changeSetName := fmt.Sprintf("%s-%d", name, count)
-	return cloudformation.CreateChangeSetInput{
-		StackName:     &name,
-		ChangeSetName: &changeSetName,
-		TemplateURL:   &uri,
-		Parameters:    params,
-		Capabilities:  capabilities,
-	}
 }
