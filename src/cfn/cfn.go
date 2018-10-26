@@ -21,14 +21,15 @@ func getSession(r string) *session.Session {
 }
 
 // UpdateStack - This will update the cfn stack
-func UpdateStack(r string, uri string, name string,
-	params []*cloudformation.Parameter,
+func UpdateStack(r string, currentStack *cloudformation.Stack,
+	uri string, name string, params []*cloudformation.Parameter,
 	capabilities []*string) {
 	svc := cloudformation.New(getSession(r))
 
+	getUpdatedParameters(currentStack.Parameters, params)
 	template := cloudformation.UpdateStackInput{
 		StackName:    &name,
-		Parameters:   params,
+		Parameters:   currentStack.Parameters,
 		Capabilities: capabilities,
 	}
 
@@ -49,7 +50,6 @@ func UpdateStack(r string, uri string, name string,
 // CreateChangeSet - This will create a change set for a given stack
 func CreateChangeSet(r string, currentStack *cloudformation.Stack, name string, uri string, params []*cloudformation.Parameter, capabilities []*string) {
 	log.Debug("%v", currentStack)
-	getUpdatedParameters(currentStack.Parameters, params)
 
 	// Initialise the variable:
 	svc := cloudformation.New(getSession(r))
@@ -57,10 +57,11 @@ func CreateChangeSet(r string, currentStack *cloudformation.Stack, name string, 
 	count := len(DescribeChangeSets(r, name).Summaries) + 1
 	changeSetName := fmt.Sprintf("%s-%d", name, count)
 
+	getUpdatedParameters(currentStack.Parameters, params)
 	template := cloudformation.CreateChangeSetInput{
 		StackName:     &name,
 		ChangeSetName: &changeSetName,
-		Parameters:    params,
+		Parameters:    currentStack.Parameters,
 		Capabilities:  capabilities,
 	}
 

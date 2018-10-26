@@ -69,7 +69,7 @@ func main() {
 					log.Warn("-x flag has been set, updating stack")
 					log.Info("Updating stack %v", *stackDetails.StackName)
 					capabilities := cfn.GetCapabilities(flagCapabilities)
-					cfn.UpdateStack(flagRegion, flagURI.value, flagName.value, params, capabilities)
+					cfn.UpdateStack(flagRegion, stackDetails, flagURI.value, flagName.value, params, capabilities)
 					os.Exit(0)
 				}
 				log.Info("Creating change set")
