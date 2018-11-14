@@ -11,3 +11,4 @@ install:
 
 clean:
 	go clean
+	rm -rf src/github.com
