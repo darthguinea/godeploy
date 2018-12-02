@@ -1,3 +1,4 @@
+export APP=$(shell basename $(CURDIR))
 export GOPATH=${PWD}
 export GOBIN=${PWD}
 export INSTALL_PATH=${HOME}/Programming/Scripts
@@ -7,8 +8,11 @@ all:
 	go build
 
 install:
-	cp godeploy ${INSTALL_PATH}
+	cp ${APP} ${INSTALL_PATH}
 
 clean:
 	go clean
-	rm -rf src/github.com
+
+clean-all:
+	go clean
+	rm -rvf src/github.com

@@ -42,6 +42,15 @@ func main() {
 	flag.StringVar(&flagRegion, "r", "us-west-1", "Region")
 	flag.StringVar(&flagCapabilities, "c", "", "<CAPABILITIES> list of capabilities i.e. CAPABILITY_IAM,CAPABILITY_NAMED_IAM")
 	flag.BoolVar(&flagVerbose, "v", false, "verbose messaging")
+	flag.Usage = func() {
+		flag.PrintDefaults()
+		log.Print("")
+		log.Print("Parameters:")
+		log.Print("\tName,myname Cidr,10.2.1.1/22")
+		log.Print("")
+		log.Print("Example Usage:")
+		log.Print("\tgodeploy -r us-west-1 -n flipper-the-stack -f file://./template.yaml Name=flipper Cidr=10.0.0.1/20")
+	}
 	flag.Parse()
 
 	if flagVerbose {
@@ -55,6 +64,11 @@ func main() {
 		log.Debug("Listing stacks in region %v", flagRegion)
 		cfn.DescribeStacks(flagRegion)
 		os.Exit(0)
+	}
+
+	if len(flag.Args()) == 0 {
+		log.Warn("You are not passing in any parameters!")
+		log.Warn("Will use defaults from the stack")
 	}
 
 	if flagName.set && flagURI.set {
