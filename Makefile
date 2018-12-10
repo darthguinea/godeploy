@@ -15,4 +15,4 @@ clean:
 
 clean-all:
 	go clean
-	rm -rvf src/github.com
+	rm -rf src/github.com
