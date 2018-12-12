@@ -186,11 +186,18 @@ func parseURI(uri string) (bool, string) {
 func GetParameters(p []string) []*cloudformation.Parameter {
 	var parameters []*cloudformation.Parameter
 	for _, val := range p {
-		strKeyPair := strings.Split(val, "=")
-		parameters = append(parameters, &cloudformation.Parameter{
-			ParameterKey:   &strKeyPair[0],
-			ParameterValue: &strKeyPair[1],
-		})
+		if strings.Contains(val, "=") {
+			strKeyPair := strings.Split(val, "=")
+			if strings.Compare(strKeyPair[1], "") == 0 || strings.Compare(strKeyPair[1], "nil") == 0 {
+				log.Warn("Skipping blank parameter [%v]", strKeyPair[0])
+				continue
+			} else {
+				parameters = append(parameters, &cloudformation.Parameter{
+					ParameterKey:   &strKeyPair[0],
+					ParameterValue: &strKeyPair[1],
+				})
+			}
+		}
 	}
 	return parameters
 }

@@ -35,7 +35,7 @@ func main() {
 		flagVerbose      bool
 	)
 	flag.Var(&flagName, "n", "<stack_name> Stack name to use")
-	flag.BoolVar(&flagUpdate, "u", false, "Allow stack to be updated if stack exists")
+	flag.BoolVar(&flagUpdate, "u", false, "Create a changeset if the stack exists")
 	flag.BoolVar(&flagNoChangeSet, "x", false, "When using (-u) a change set is created by default, use this flag if you want to update without creating a changeset")
 	flag.Var(&flagURI, "f", "<location> Cloudformation location, i.e. file://./cfn.yaml or s3://location")
 	flag.BoolVar(&flagListStacks, "l", false, "List stacks")
@@ -46,7 +46,7 @@ func main() {
 		flag.PrintDefaults()
 		log.Print("")
 		log.Print("Parameters:")
-		log.Print("\tName,myname Cidr,10.2.1.1/22")
+		log.Print("\tName=myname Cidr=10.2.1.1/22")
 		log.Print("")
 		log.Print("Example Usage:")
 		log.Print("\tgodeploy -r us-west-1 -n flipper-the-stack -f file://./template.yaml Name=flipper Cidr=10.0.0.1/20")

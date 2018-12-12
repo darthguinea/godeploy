@@ -1,6 +1,7 @@
 package cfn
 
 import (
+	"os"
 	"strings"
 
 	"../log"
@@ -30,5 +31,13 @@ outer:
 		currentParams = append(currentParams, newParam)
 	}
 	log.Debug("Parameters: %v", currentParams)
+	log.Info("Using:")
+	for _, param := range currentParams {
+		if *param.UsePreviousValue {
+			log.Info("\t%v=UsePreviousValue", *param.ParameterKey)
+		} else {
+			log.Info("\t%v=%v", *param.ParameterKey, *param.ParameterValue)
+		}
+	}
 	return
 }
