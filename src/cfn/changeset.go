@@ -1,7 +1,6 @@
 package cfn
 
 import (
-	"os"
 	"strings"
 
 	"../log"
