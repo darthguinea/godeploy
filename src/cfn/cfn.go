@@ -5,8 +5,8 @@ import (
 	"os"
 	"strings"
 
-	"../log"
-	"../utils"
+	"github.com/darthguinea/godeploy/log"
+	"github.com/darthguinea/godeploy/utils"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
