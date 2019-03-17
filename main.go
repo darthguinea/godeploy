@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"./src/cfn"
-	"./src/log"
+	"github.com/darthguinea/golib/log"
 )
 
 type stringFlag struct {

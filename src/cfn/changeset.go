@@ -3,7 +3,7 @@ package cfn
 import (
 	"strings"
 
-	"../log"
+	"github.com/darthguinea/golib/log"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"

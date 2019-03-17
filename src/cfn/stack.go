@@ -3,8 +3,8 @@ package cfn
 import (
 	"os"
 
-	"../log"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/darthguinea/golib/log"
 )
 
 func createStackFromFile(name string, uri string, params []*cloudformation.Parameter, capabilities []*string) cloudformation.CreateStackInput {

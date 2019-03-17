@@ -5,12 +5,12 @@ import (
 	"os"
 	"strings"
 
-	"../log"
 	"../utils"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
+	"github.com/darthguinea/golib/log"
 )
 
 // Creates an AWS Session if you pass in the region

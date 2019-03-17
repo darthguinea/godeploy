@@ -3,7 +3,7 @@ package utils
 import (
 	"os"
 
-	"../log"
+	"github.com/darthguinea/golib/log"
 )
 
 func LoadTemplate(path string) string {
