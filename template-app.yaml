@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: "Deploy blue environment"
+Description: "Deploy app stack"
 
 Parameters:
   Name:
@@ -50,9 +50,7 @@ Resources:
         - IpProtocol: -1
           FromPort: 0
           ToPort: 65535
-          CidrIp:
-            Fn::ImportValue:
-              !Sub "${Name}-cidr"
+          CidrIp: 0.0.0.0/0
       Tags:
         - Key: Name
           Value: !Sub "${Name}-asg-sg-${Version}"
@@ -115,7 +113,7 @@ Resources:
         - !Ref HttpTargetGroup
       Tags:
         - Key: Name
-          Value: !Sub "${Name}-asg-blue-${Version}"
+          Value: !Sub "${Name}-asg-app-${Version}"
           PropagateAtLaunch: true
         - Key: Version
           Value: !Sub "${Version}"
@@ -133,9 +131,13 @@ Resources:
         Fn::Base64:
           Fn::Join:
             - "\n"
-            - - "apt update"
+            - - "#cloud-config"
+              - "disable_ec2_metadata: false"
+              - "runcmd:"
+              - "apt update"
               - "apt upgrade -y"
-              - "echo finished >> /tmp/output.log"
+              - "apt install apache2 -y"
+              - "echo '<h1>blue</h1>' > /var/www/html/index.html"
     DependsOn:
       - AsgSecurityGroup
       - LoadBalancer
