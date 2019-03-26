@@ -6,6 +6,10 @@ Parameters:
     Description: "Enter a name"
     Type: String
     Default: ""
+  Type:
+    Description: "Stack Type"
+    Type: String
+    Default: "blue"
   Version:
     Description: "Version Number"
     Type: String
@@ -90,7 +94,7 @@ Resources:
   HttpTargetGroup:
     Type: "AWS::ElasticLoadBalancingV2::TargetGroup"
     Properties:
-      Name: !Sub "${Name}-http-target-group"
+      Name: !Sub "${Name}-http-target-group-${Version}"
       Protocol: HTTP
       Port: 80
       VpcId:
@@ -131,13 +135,10 @@ Resources:
         Fn::Base64:
           Fn::Join:
             - "\n"
-            - - "#cloud-config"
-              - "disable_ec2_metadata: false"
-              - "runcmd:"
+            - - "#!/bin/bash" 
               - "apt update"
-              - "apt upgrade -y"
               - "apt install apache2 -y"
-              - "echo '<h1>blue</h1>' > /var/www/html/index.html"
+              - !Sub "echo '<h1>${Type} - ${Version}</h1>' > /var/www/html/index.html"
     DependsOn:
       - AsgSecurityGroup
       - LoadBalancer
