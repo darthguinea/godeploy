@@ -14,8 +14,24 @@ Parameters:
     Description: "Version Number"
     Type: String
     Default: 1
+  Dns:
+    Description: "Dns Name"
+    Type: String
 
 Resources:
+  Route53CName:
+    Type: "AWS::Route53::RecordSetGroup"
+    DependsOn: LoadBalancer
+    Properties:
+      HostedZoneName: !Sub "${Dns}."
+      Comment: Dns name
+      RecordSets:
+      - Name: !Sub "${Type}-${Version}.${Dns}."
+        Type: CNAME
+        TTL: 300
+        ResourceRecords:
+        - !GetAtt LoadBalancer.DNSName
+
   ElbSecurityGroup:
     Type: "AWS::EC2::SecurityGroup"
     Properties:
