@@ -1,0 +1,161 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Deploy app stack"
+
+Parameters:
+  Name:
+    Description: "Enter a name"
+    Type: String
+    Default: ""
+  Type:
+    Description: "Stack Type"
+    Type: String
+    Default: "blue"
+  Version:
+    Description: "Version Number"
+    Type: String
+    Default: 1
+  Dns:
+    Description: "Dns Name"
+    Type: String
+
+Resources:
+  Route53CName:
+    Type: "AWS::Route53::RecordSetGroup"
+    DependsOn: LoadBalancer
+    Properties:
+      HostedZoneName: !Sub "${Dns}."
+      Comment: Dns name
+      RecordSets:
+      - Name: !Sub "${Type}-${Version}.${Dns}."
+        Type: CNAME
+        TTL: 300
+        ResourceRecords:
+        - !GetAtt LoadBalancer.DNSName
+
+  ElbSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: "Elb Security Group"
+      VpcId: 
+        Fn::ImportValue:
+            !Sub "${Name}-vpc-id"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub "${Name}-elb-sg-${Version}"
+
+  AsgSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: "Security Group for Autoscaling group"
+      VpcId:
+        Fn::ImportValue:
+          !Sub "${Name}-vpc-id"
+      SecurityGroupIngress:
+        - IpProtocol: -1
+          FromPort: 0
+          ToPort: 65535
+          CidrIp:
+            Fn::ImportValue:
+              !Sub "${Name}-cidr"
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          FromPort: 0
+          ToPort: 65535
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub "${Name}-asg-sg-${Version}"
+
+  LoadBalancer:
+    Type: "AWS::ElasticLoadBalancingV2::LoadBalancer"
+    Properties:
+      Name: !Sub "${Name}-load-balancer-${Version}"
+      Scheme: internet-facing
+      SecurityGroups:
+        - !Ref ElbSecurityGroup
+      Subnets:
+        - Fn::ImportValue:
+            !Sub "${Name}-public-subnet-1"
+        - Fn::ImportValue:
+            !Sub "${Name}-public-subnet-2"
+      Tags:
+        - Key: "Name"
+          Value: !Sub "${Name}-lb-${Version}"
+    DependsOn:
+      - ElbSecurityGroup
+
+  HttpListener:
+    Type: "AWS::ElasticLoadBalancingV2::Listener"
+    Properties:
+      LoadBalancerArn:
+        Ref: LoadBalancer
+      Protocol: HTTP
+      Port: 80
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref HttpTargetGroup
+    DependsOn:
+      - HttpTargetGroup
+      - LoadBalancer
+
+  HttpTargetGroup:
+    Type: "AWS::ElasticLoadBalancingV2::TargetGroup"
+    Properties:
+      Name: !Sub "${Name}-http-target-group-${Version}"
+      Protocol: HTTP
+      Port: 80
+      VpcId:
+        Fn::ImportValue:
+          !Sub "${Name}-vpc-id"
+
+  AutoScalingServerGroup:
+    Type: "AWS::AutoScaling::AutoScalingGroup"
+    Properties:
+      LaunchConfigurationName: !Ref LaunchConfigurationName
+      DesiredCapacity: 1
+      MinSize: 1
+      MaxSize: 2
+      VPCZoneIdentifier:
+        - Fn::ImportValue:
+            !Sub "${Name}-private-subnet-1"
+        - Fn::ImportValue:
+            !Sub "${Name}-private-subnet-2"
+      TargetGroupARNs:
+        - !Ref HttpTargetGroup
+      Tags:
+        - Key: Name
+          Value: !Sub "${Name}-asg-app-${Version}"
+          PropagateAtLaunch: true
+        - Key: Version
+          Value: !Sub "${Version}"
+          PropagateAtLaunch: true
+
+  LaunchConfigurationName:
+    Type: "AWS::AutoScaling::LaunchConfiguration"
+    Properties:
+      ImageId: "ami-06397100adf427136"
+      InstanceType: "t2.micro"
+      KeyName: "hurried"
+      SecurityGroups:
+        - !Ref AsgSecurityGroup
+      UserData:
+        Fn::Base64:
+          Fn::Join:
+            - "\n"
+            - - "#!/bin/bash" 
+              - "apt update"
+              - "apt install apache2 -y"
+              - !Sub "echo '<h1>${Type} - ${Version}</h1>' > /var/www/html/index.html"
+    DependsOn:
+      - AsgSecurityGroup
+      - LoadBalancer
+      - HttpTargetGroup
