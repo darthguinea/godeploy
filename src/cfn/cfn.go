@@ -27,7 +27,7 @@ func UpdateStack(r string, currentStack *cloudformation.Stack,
 	svc := cloudformation.New(getSession(r))
 	log.Info("UpdateStack")
 
-	getUpdatedParameters(currentStack.Parameters, params)
+	getUpdatedParameters(&currentStack.Parameters, params)
 	template := cloudformation.UpdateStackInput{
 		StackName:    &name,
 		Parameters:   currentStack.Parameters,
@@ -49,7 +49,11 @@ func UpdateStack(r string, currentStack *cloudformation.Stack,
 }
 
 // CreateChangeSet - This will create a change set for a given stack
-func CreateChangeSet(r string, currentStack *cloudformation.Stack, name string, uri string, params []*cloudformation.Parameter, capabilities []*string) {
+func CreateChangeSet(r string, currentStack *cloudformation.Stack,
+	name string, uri string, params []*cloudformation.Parameter,
+	capabilities []*string) {
+
+	log.Debug("CreateChangeSet")
 	log.Debug("%v", currentStack)
 
 	// Initialise the variable:
@@ -58,13 +62,18 @@ func CreateChangeSet(r string, currentStack *cloudformation.Stack, name string, 
 	count := len(DescribeChangeSets(r, name).Summaries) + 1
 	changeSetName := fmt.Sprintf("%s-%d", name, count)
 
-	getUpdatedParameters(currentStack.Parameters, params)
+	getUpdatedParameters(&currentStack.Parameters, params)
+	log.Debug("Getting current params:")
+	log.Debug("%v", currentStack.Parameters)
 	template := cloudformation.CreateChangeSetInput{
 		StackName:     &name,
 		ChangeSetName: &changeSetName,
 		Parameters:    currentStack.Parameters,
 		Capabilities:  capabilities,
 	}
+
+	log.Debug("Change set input:")
+	log.Debug("%v", template)
 
 	if pass, path := parseURI(uri); pass {
 		templateBody := utils.LoadTemplate(path)
