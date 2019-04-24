@@ -73,4 +73,3 @@ bob-the-stack                                        Mon Oct 8 06:44:28 UTC 2018
 exit status 2
 ```
 
-
